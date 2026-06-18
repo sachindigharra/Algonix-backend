@@ -27,4 +27,9 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("User Registered Successfully");
     }
+    @PostMapping("/login")
+    public ResponseEntity<String> login() {
+        // Authentication is handled by Spring Security, so we just return a success message
+        return ResponseEntity.ok("User Logged In Successfully");
+    }
 }

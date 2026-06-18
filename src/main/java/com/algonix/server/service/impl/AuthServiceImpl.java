@@ -1,6 +1,7 @@
 package com.algonix.server.service.impl;
 
 import com.algonix.server.dto.RegisterRequest;
+import com.algonix.server.entity.User;
 import com.algonix.server.exception.DuplicateResourceException;
 import com.algonix.server.repository.UserRepository;
 import com.algonix.server.service.AuthService;
