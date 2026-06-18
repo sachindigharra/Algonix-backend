@@ -14,7 +14,7 @@ public class UserMapper {
         return UserProfileResponse.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
-                .fullName(profile != null ? profile.getFullName() : null)
+                .fullName(user.getFullName() != null ? user.getFullName() : null)
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
                 .build();

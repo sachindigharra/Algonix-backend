@@ -17,4 +17,8 @@ public interface ProblemService {
     List<ProblemResponse> getAllProblems(UUID userId);
 
     void deleteProblem(UUID id);
+
+    ProblemResponse updateProblem(UUID id, CreateProblemRequest request);
+
+    List<ProblemResponse> getAllProblems();
 }
