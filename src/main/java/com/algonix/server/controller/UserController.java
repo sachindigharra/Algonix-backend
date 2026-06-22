@@ -27,7 +27,7 @@ public class UserController {
                 userService.getUser(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/profile/{id}")
     public ResponseEntity<UserProfileResponse> updateProfile(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserProfileRequest request) {

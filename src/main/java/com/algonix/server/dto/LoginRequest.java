@@ -8,14 +8,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RegisterRequest {
+public class LoginRequest {
 
-    @NotBlank
-    private String fullName;
-
-    @Email
+    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "Email should be valid")
     private String email;
 
-    @Size(min = 8)
+    @NotBlank(message = "Password cannot be blank")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 }
