@@ -1,5 +1,6 @@
 package com.algonix.server.service;
 
+import com.algonix.server.dto.BulkUpdateProblemRequest;
 import com.algonix.server.dto.CreateProblemRequest;
 import com.algonix.server.dto.ProblemResponse;
 
@@ -17,4 +18,15 @@ public interface ProblemService {
     List<ProblemResponse> getAllProblems(UUID userId);
 
     void deleteProblem(UUID id);
+
+    ProblemResponse updateProblem(UUID id, CreateProblemRequest request);
+
+    List<ProblemResponse> getAllProblems();
+
+    // Bulk and sync related operations
+    List<ProblemResponse> upsertProblems(UUID userId, List<CreateProblemRequest> requests);
+
+    String bulkInsertProblems(UUID userId, List<CreateProblemRequest> requests);
+
+    void bulkUpdateProblems(UUID userId, List<BulkUpdateProblemRequest> requests);
 }

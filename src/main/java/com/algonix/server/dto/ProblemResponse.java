@@ -21,4 +21,6 @@ public class ProblemResponse {
     private String difficulty;
 
     private String status;
+
+    private String url;
 }
