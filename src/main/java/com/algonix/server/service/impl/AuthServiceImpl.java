@@ -8,6 +8,8 @@ import com.algonix.server.exception.DuplicateResourceException;
 import com.algonix.server.repository.UserRepository;
 import com.algonix.server.service.AuthService;
 import com.algonix.server.util.JWTService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,20 +72,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginRequest request) {
+    public String login(LoginRequest request, HttpServletResponse response) {
 
         log.debug("Validate the credentials for user: {}", request.getEmail());
-        try {
-            Authentication authenticate = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
 
-        } catch (Exception e) {
-            log.error("Authentication failed for user: {}. Error: {}", request.getEmail(), e.getMessage());
-            throw new IllegalArgumentException("Invalid email or password");
-        }
+        Authentication authenticate = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
+        log.info("Create Cookie for User : {}",request.getEmail());
+        Cookie cookie = new Cookie("jwt", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // Set to true in production (HTTPS)
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        response.addCookie(cookie);
         log.debug("Login successful for user: {}", request.getEmail());
         return token;
 

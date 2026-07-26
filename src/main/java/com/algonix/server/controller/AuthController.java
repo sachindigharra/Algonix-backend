@@ -3,6 +3,7 @@ package com.algonix.server.controller;
 import com.algonix.server.dto.LoginRequest;
 import com.algonix.server.dto.RegisterRequest;
 import com.algonix.server.service.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,11 +29,11 @@ public class AuthController {
                 .body("User Registered Successfully");
     }
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         // Authentication is handled by Spring Security, so we just return a success message
         logger.info("User logging in system:{}", request.getEmail());
-        authService.login(request);
-        return ResponseEntity.ok(authService.login(request));
+
+        return ResponseEntity.ok(authService.login(request,response));
     }
 
     @PostMapping("/refresh-token")
