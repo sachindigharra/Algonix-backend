@@ -1,5 +1,6 @@
 package com.algonix.server.controller;
 
+import com.algonix.server.dto.BulkUpdateProblemRequest;
 import com.algonix.server.dto.CreateProblemRequest;
 import com.algonix.server.dto.ProblemResponse;
 import com.algonix.server.service.ProblemService;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -63,7 +65,35 @@ public class ProblemController {
     }
 
     @GetMapping("/health")
-    public ResponseEntity<String> gethealth() {
+    public ResponseEntity<String> getHealth() {
         return ResponseEntity.ok("Health check passed");
+    }
+
+    @PostMapping("/upsert")
+    public ResponseEntity<List<ProblemResponse>> upsertProblems(
+            @RequestParam UUID userId,
+            @Valid @RequestBody List<CreateProblemRequest> requests) {
+
+        return ResponseEntity.ok(
+                problemService.upsertProblems(userId, requests)
+        );
+    }
+
+    @PostMapping("/bulk-insert")
+    public ResponseEntity<String> bulkInsert(
+            @RequestParam UUID userId,
+            @Valid @RequestBody List<CreateProblemRequest> requests) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(problemService.bulkInsertProblems(userId,requests));
+    }
+
+    @PatchMapping("/bulk-update")
+    public ResponseEntity<Void> bulkUpdate(
+            @RequestParam UUID userId,
+            @Valid @RequestBody List<BulkUpdateProblemRequest> requests) {
+
+        problemService.bulkUpdateProblems(userId, requests);
+        return ResponseEntity.noContent().build();
     }
 }

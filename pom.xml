@@ -60,7 +60,6 @@
 			<optional>true</optional>
 		</dependency>
         <!-- JWT handling -->
-        <!-- Add Authentication Later
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -79,7 +78,6 @@
             <scope>runtime</scope>
         </dependency>
 
-       -->
         <!-- HTTP client for platform sync (LeetCode, Codeforces) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

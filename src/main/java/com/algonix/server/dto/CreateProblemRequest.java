@@ -20,5 +20,7 @@ public class CreateProblemRequest {
 
     private ProblemStatus status;
 
+    private String Company;
+
     private String url;
 }

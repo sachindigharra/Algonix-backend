@@ -1,5 +1,6 @@
 package com.algonix.server.service.impl;
 
+import com.algonix.server.dto.BulkUpdateProblemRequest;
 import com.algonix.server.dto.CreateProblemRequest;
 import com.algonix.server.dto.ProblemResponse;
 import com.algonix.server.entity.Problem;
@@ -14,8 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -95,6 +99,86 @@ public class ProblemServiceImpl implements ProblemService {
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
         log.info("Deleting problem {}", id);
         problemRepository.delete(problem);
+    }
+
+    @Override
+    public List<ProblemResponse> upsertProblems(UUID userId, List<CreateProblemRequest> requests) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<Problem> existing = problemRepository.findByUserId(userId);
+        Map<String, Problem> byTitle = existing.stream()
+                .collect(Collectors.toMap(p -> p.getTitle().toLowerCase(), p -> p));
+
+        List<ProblemResponse> result = new ArrayList<>();
+
+        for (CreateProblemRequest req : requests) {
+            String key = req.getTitle().toLowerCase();
+            Problem p = byTitle.get(key);
+            if (p == null) {
+                p = problemMapper.toEntity(req);
+                p.setUser(user);
+            } else {
+                // basic update behavior
+                p.setDifficulty(req.getDifficulty());
+                p.setPlatform(req.getPlatform());
+                p.setStatus(req.getStatus());
+                p.setUrl(req.getUrl());
+            }
+            Problem saved = problemRepository.save(p);
+            result.add(problemMapper.toResponseDto(saved));
+        }
+
+        return result;
+    }
+
+    @Override
+    public String bulkInsertProblems(UUID userId, List<CreateProblemRequest> requests) {
+        log.info("Bulk inserting {} problems for user{} by uploading a csv file",requests.size(),userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("user not found with id: "+userId));
+        // problem add by the user may be already present in system
+        // If its present then we will update company fields otherwise we will create new problem
+        List<Problem>problems = new ArrayList<>();
+        for(CreateProblemRequest req:requests){
+            Problem problem = problemRepository.findByTitleIgnoreCase(req.getTitle()).orElse(null);
+            if(problem!=null){
+                List<String>companies = problem.getCompanies();
+                companies.add(req.getCompany());
+                problem.setCompanies(new ArrayList<>(companies));
+            }
+            else{
+                problem  = problemMapper.toEntity(req);
+                problem.setUser(user);
+            }
+            problems.add(problem);
+        }
+        // Save all problems in bulk
+        List<Problem> savedProblems = problemRepository.saveAll(problems);
+        log.info("Bulk insert completed for {} problems for user {}",savedProblems.size(),userId);
+        return "Bulk Insert Complete";
+
+    }
+
+    @Override
+    public void bulkUpdateProblems(UUID userId, List<BulkUpdateProblemRequest> requests) {
+        for (BulkUpdateProblemRequest req : requests) {
+            problemRepository.findById(req.getId()).ifPresent(problem -> {
+                if (problem.getUser() == null || !problem.getUser().getId().equals(userId)) {
+                    // skip updates for problems not owned by the user
+                    return;
+                }
+                if (req.getStatus() != null) {
+                    problem.setStatus(req.getStatus());
+                }
+                if (req.getSolvedDate() != null) {
+                    problem.setSolvedDate(req.getSolvedDate());
+                }
+                problemRepository.save(problem);
+            });
+        }
     }
 
 }
