@@ -1,8 +1,10 @@
 package com.algonix.server.controller;
 
+import com.algonix.server.dto.AuthResponse;
 import com.algonix.server.dto.LoginRequest;
 import com.algonix.server.dto.RegisterRequest;
 import com.algonix.server.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -58,9 +60,12 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<String> getCurrentUser() {
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         // Logic to get the current authenticated user would go here
         logger.info("Fetching current authenticated user");
-        return ResponseEntity.ok("Current User Details");
+        AuthResponse authResponse = authService.getMyDetail(request);
+        if(authResponse!=null)
+            return ResponseEntity.ok(authService.getMyDetail(request));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated");
     }
 }

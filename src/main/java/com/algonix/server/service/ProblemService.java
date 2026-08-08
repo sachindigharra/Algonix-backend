@@ -29,4 +29,7 @@ public interface ProblemService {
     String bulkInsertProblems(UUID userId, List<CreateProblemRequest> requests);
 
     void bulkUpdateProblems(UUID userId, List<BulkUpdateProblemRequest> requests);
+
+    interface LeetCodeService {
+    }
 }

@@ -146,7 +146,11 @@ public class ProblemServiceImpl implements ProblemService {
             Problem problem = problemRepository.findByTitleIgnoreCase(req.getTitle()).orElse(null);
             if(problem!=null){
                 List<String>companies = problem.getCompanies();
-                companies.add(req.getCompany());
+                for(String company:req.getCompanies()){
+                    if(!companies.contains(company)){
+                        companies.add(company);
+                    }
+                }
                 problem.setCompanies(new ArrayList<>(companies));
             }
             else{

@@ -1,14 +1,18 @@
 package com.algonix.server.service.impl;
 
+import com.algonix.server.dto.AuthResponse;
 import com.algonix.server.dto.LoginRequest;
 import com.algonix.server.dto.RegisterRequest;
 import com.algonix.server.entity.Role;
 import com.algonix.server.entity.User;
 import com.algonix.server.exception.DuplicateResourceException;
+import com.algonix.server.exception.ResourceNotFoundException;
+import com.algonix.server.mapper.UserMapper;
 import com.algonix.server.repository.UserRepository;
 import com.algonix.server.service.AuthService;
 import com.algonix.server.util.JWTService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
     private final CustomUserDetailsService userDetailsService;
 
     private final AuthenticationManager authenticationManager;
+
+    private final UserMapper mapper;
 
 
     @Override
@@ -92,6 +98,26 @@ public class AuthServiceImpl implements AuthService {
         log.debug("Login successful for user: {}", request.getEmail());
         return token;
 
+    }
+
+    @Override
+    public AuthResponse getMyDetail(HttpServletRequest request) {
+        String token = null;
+        if(request.getCookies() !=null){
+            for(Cookie cookie: request.getCookies()){
+                if(cookie.getName().equals("jwt")){
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if(token!=null && !jwtService.isTokenExpired(token)){
+            String email = jwtService.extractUsername(token);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(()-> new ResourceNotFoundException("User not found with email: "+email));
+            return mapper.mapToAuthResponse(user);
+        }
+        return null;
     }
 
 }
