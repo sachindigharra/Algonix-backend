@@ -1,8 +1,11 @@
 package com.algonix.server.controller;
 
+import com.algonix.server.dto.ApiResponse;
+import com.algonix.server.dto.AuthResponse;
 import com.algonix.server.dto.LoginRequest;
 import com.algonix.server.dto.RegisterRequest;
 import com.algonix.server.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +23,28 @@ public class AuthController {
     private final AuthService authService;
     Logger logger = LoggerFactory.getLogger(AuthController.class);
     @PostMapping("/register")
-    public ResponseEntity<String> register(
-            @Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(
+            @Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         logger.info("Registering user with email: {}", request.getEmail());
-        authService.register(request);
+        AuthResponse user=authService.register(request,response);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body("User Registered Successfully");
+                .body(ApiResponse.<AuthResponse>builder()
+                .data(user)
+                .error(null)
+                .build());
     }
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         // Authentication is handled by Spring Security, so we just return a success message
         logger.info("User logging in system:{}", request.getEmail());
 
-        return ResponseEntity.ok(authService.login(request,response));
+        AuthResponse user = authService.login(request,response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.<AuthResponse>builder()
+                        .data(user)
+                        .error(null)
+                        .build());
     }
 
     @PostMapping("/refresh-token")
@@ -51,16 +62,34 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        // Logout logic would go here
+    public ResponseEntity<?> logout(HttpServletRequest request,
+                                    HttpServletResponse response) {
         logger.info("User logging out system");
-        return ResponseEntity.ok("User Logged Out Successfully");
+        authService.logout(request, response);
+        
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .data("Logged out successfully")
+                .error(null)
+                .build());
     }
 
     @GetMapping("/me")
-    public ResponseEntity<String> getCurrentUser() {
-        // Logic to get the current authenticated user would go here
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         logger.info("Fetching current authenticated user");
-        return ResponseEntity.ok("Current User Details");
+        try {
+            AuthResponse user = authService.getCurrentUser(request);
+            return ResponseEntity.ok(ApiResponse.<AuthResponse>builder()
+                    .data(user)
+                    .error(null)
+                    .build());
+        } catch (Exception e) {
+            logger.error("Failed to fetch user: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<String>builder()
+                            .data(null)
+                            .error(e.getMessage())
+                            .build());
+        }
     }
+
 }
