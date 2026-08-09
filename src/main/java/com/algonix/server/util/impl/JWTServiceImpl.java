@@ -158,8 +158,8 @@ public class JWTServiceImpl implements JWTService {
             return isExpired;
         }
         catch (Exception e){
-            log.error("Failed to check if token is expired. Error: {}", e.getMessage(), e);
-            throw e;
+            log.debug("Token is expired or invalid. Error: {}", e.getMessage());
+            return true;
         }
     }
     // Implement the methods defined in the JWTService interface here
