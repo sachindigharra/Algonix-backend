@@ -1,7 +1,7 @@
 package com.algonix.server.service;
 
-import com.algonix.server.dto.UpdateUserProfileRequest;
-import com.algonix.server.dto.UserProfileResponse;
+import com.algonix.server.dto.request.UpdateUserProfileRequest;
+import com.algonix.server.dto.response.UserProfileResponse;
 
 import java.util.UUID;
 

@@ -1,10 +1,12 @@
 package com.algonix.server.exception;
 
+import com.algonix.server.dto.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.algonix.server.dto.ErrorResponse;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -90,5 +92,43 @@ public class GlobalExceptionHandler {
                                 .timestamp(LocalDateTime.now())
                                 .build()
                 );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex) {
+
+        ErrorResponse error =
+                ErrorResponse.builder()
+                        .message(ex.getMessage())
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .timestamp(LocalDateTime.now())
+                        .build();
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex) {
+
+        String message = "Invalid or missing request body";
+
+        if (ex.getMessage() != null &&
+                ex.getMessage().startsWith("Required request body is missing")) {
+            message = "Request body is required";
+        }
+        ErrorResponse error =
+                ErrorResponse.builder()
+                        .message(message)
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .timestamp(LocalDateTime.now())
+                        .build();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 }

@@ -1,4 +1,4 @@
-package com.algonix.server.dto;
+package com.algonix.server.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.algonix.server.mapper;
 
-import com.algonix.server.dto.UserProfileResponse;
+import com.algonix.server.dto.response.UserProfileResponse;
 import com.algonix.server.entity.User;
 import com.algonix.server.entity.UserProfile;
 import org.springframework.stereotype.Component;

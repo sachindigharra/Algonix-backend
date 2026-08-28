@@ -1,17 +1,17 @@
 package com.algonix.server.util;
 
+import com.algonix.server.security.CustomUserPrincipal;
 import io.jsonwebtoken.Claims;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.crypto.SecretKey;
 import java.util.function.Function;
 
 public interface JWTService {
-    String generateToken(UserDetails user);
+    String generateToken(CustomUserPrincipal  user);
 
     String extractUsername(String token);
 
-    boolean isTokenValid(String token, UserDetails user);
+    boolean isTokenValid(String token, CustomUserPrincipal  user);
 
     java.util.Date extractExpiration(String token);
 

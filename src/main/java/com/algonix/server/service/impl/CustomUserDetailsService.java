@@ -2,11 +2,15 @@ package com.algonix.server.service.impl;
 
 import com.algonix.server.entity.User;
 import com.algonix.server.repository.UserRepository;
+import com.algonix.server.security.CustomUserPrincipal;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,23 +20,25 @@ public class CustomUserDetailsService
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(
-            String email)
-            throws UsernameNotFoundException {
+    public CustomUserPrincipal loadUserByUsername(String username) {
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
-                                "User not found"));
+                                "User not found: " + username
+                        ));
 
-//        For simplicity, we are assigning all users the "USER" role.
-//        Org.springframework.security.core.userdetails.User is a built-in implementation of UserDetails provided by Spring Security.
-//        we can create our own implementation of UserDetails if we want to include additional information or customize the behavior.
+        List<GrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority(
+                        user.getRole().name()
+                )
+        );
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPasswordHash())
-                .roles("USER")
-                .build();
+        return new CustomUserPrincipal(
+                user.getId(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                authorities
+        );
     }
 }

@@ -1,8 +1,12 @@
 package com.algonix.server.service;
 
-import com.algonix.server.dto.BulkUpdateProblemRequest;
-import com.algonix.server.dto.CreateProblemRequest;
-import com.algonix.server.dto.ProblemResponse;
+import com.algonix.server.dto.request.CreateProblemRequest;
+import com.algonix.server.dto.request.UpdateUserProblemRequest;
+import com.algonix.server.dto.request.UserProblemStatusResponse;
+import com.algonix.server.dto.response.BulkImportResponse;
+import com.algonix.server.dto.response.ProblemResponse;
+import com.algonix.server.dto.response.UserProblemResponse;
+import com.algonix.server.entity.ProblemStatus;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,20 +17,28 @@ public interface ProblemService {
             UUID userId,
             CreateProblemRequest request);
 
-    ProblemResponse getProblem(UUID id);
+    ProblemResponse getProblem(UUID problemId);
 
     List<ProblemResponse> getAllProblems(UUID userId);
 
-    void deleteProblem(UUID id);
+    void deleteProblem(UUID problemId,UUID userId);
 
-    ProblemResponse updateProblem(UUID id, CreateProblemRequest request);
+    ProblemResponse updateProblem(UUID problemId,UUID userID ,CreateProblemRequest request);
 
     List<ProblemResponse> getAllProblems();
 
     // Bulk and sync related operations
     List<ProblemResponse> upsertProblems(UUID userId, List<CreateProblemRequest> requests);
 
-    String bulkInsertProblems(UUID userId, List<CreateProblemRequest> requests);
+    BulkImportResponse bulkImportProblems(UUID userId, List<CreateProblemRequest> requests);
 
-    void bulkUpdateProblems(UUID userId, List<BulkUpdateProblemRequest> requests);
+    UserProblemResponse updateUserProblem(UUID problemId, UUID userId, UpdateUserProblemRequest request);
+
+     void updateStatus(UUID userId, UUID problemId, ProblemStatus status);
+
+     List<ProblemResponse> getAllProblemsForUser();
+
+     List<UserProblemResponse> getAllProblemsForUser(UUID userId);
+
+    List<UserProblemStatusResponse> getUserStatuses(UUID userId);
 }
