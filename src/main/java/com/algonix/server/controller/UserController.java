@@ -1,7 +1,7 @@
 package com.algonix.server.controller;
 
-import com.algonix.server.dto.UpdateUserProfileRequest;
-import com.algonix.server.dto.UserProfileResponse;
+import com.algonix.server.dto.request.UpdateUserProfileRequest;
+import com.algonix.server.dto.response.UserProfileResponse;
 import com.algonix.server.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;

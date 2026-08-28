@@ -1,8 +1,8 @@
 package com.algonix.server.service;
 
-import com.algonix.server.dto.AuthResponse;
-import com.algonix.server.dto.LoginRequest;
-import com.algonix.server.dto.RegisterRequest;
+import com.algonix.server.dto.response.AuthResponse;
+import com.algonix.server.dto.request.LoginRequest;
+import com.algonix.server.dto.request.RegisterRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 

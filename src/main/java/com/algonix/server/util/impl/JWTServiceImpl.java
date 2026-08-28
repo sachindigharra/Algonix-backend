@@ -1,13 +1,14 @@
 package com.algonix.server.util.impl;
 
+import com.algonix.server.security.CustomUserPrincipal;
 import com.algonix.server.util.JWTService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -23,7 +24,7 @@ public class JWTServiceImpl implements JWTService {
     // Note: Replace with actual secure key in production .ONLY Testing purpose
     private final String SECRET_KEY = "MzJieXRlc2xvbmdzZWNyZXRrZXltYW51YWxseWVuY29kZWQ=";
     @Override
-    public String generateToken(UserDetails user) {
+    public String generateToken(CustomUserPrincipal user) {
         log.info("Generating JWT for username: {}", user.getUsername());
         // role of the user
         log.debug("User role for token: {}", user.getAuthorities());
@@ -65,7 +66,7 @@ public class JWTServiceImpl implements JWTService {
     }
 
     @Override
-    public boolean isTokenValid(String token, UserDetails user) {
+    public boolean isTokenValid(String token, CustomUserPrincipal user) {
         log.info("Validating token for user: {}", user.getUsername());
         try {
             // extract the username from the token and compare it with the provided user's username
@@ -123,14 +124,24 @@ public class JWTServiceImpl implements JWTService {
     @Override
     public Claims extractAllClaims(String token) {
         log.debug("Parsing all claims from token");
+
         try {
             return Jwts.parser()
                     .verifyWith(getKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT token expired: {}", e.getMessage());
+            throw e;
+
+        } catch (JwtException e) {
+            log.error("Failed to parse JWT claims: {}", e.getMessage());
+            throw e;
+
         } catch (Exception e) {
-            log.error("Failed to parse claims from token. Error: {}", e.getMessage(), e);
+            log.error("Unexpected error while parsing JWT claims", e);
             throw e;
         }
     }

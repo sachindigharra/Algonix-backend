@@ -15,6 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +27,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtFilter JwtFilter;
+
     // Security filter chain bean to configure HTTP security settings
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
@@ -29,6 +35,7 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -44,6 +51,22 @@ public class SecurityConfig {
         http.addFilterBefore(JwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
+    // CORS configuration source
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     // Password encoder bean to hash passwords before storing in the database
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -58,6 +81,7 @@ public class SecurityConfig {
 
         return configuration.getAuthenticationManager();
     }
+
     // Authentication provider bean to integrate user details service and password encoder
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {

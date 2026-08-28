@@ -1,7 +1,7 @@
 package com.algonix.server.service.impl;
 
-import com.algonix.server.dto.UpdateUserProfileRequest;
-import com.algonix.server.dto.UserProfileResponse;
+import com.algonix.server.dto.request.UpdateUserProfileRequest;
+import com.algonix.server.dto.response.UserProfileResponse;
 import com.algonix.server.entity.User;
 import com.algonix.server.entity.UserProfile;
 import com.algonix.server.exception.ResourceNotFoundException;

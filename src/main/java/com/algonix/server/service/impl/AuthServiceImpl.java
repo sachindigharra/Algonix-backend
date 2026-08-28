@@ -1,12 +1,13 @@
 package com.algonix.server.service.impl;
 
-import com.algonix.server.dto.AuthResponse;
-import com.algonix.server.dto.LoginRequest;
-import com.algonix.server.dto.RegisterRequest;
+import com.algonix.server.dto.response.AuthResponse;
+import com.algonix.server.dto.request.LoginRequest;
+import com.algonix.server.dto.request.RegisterRequest;
 import com.algonix.server.entity.Role;
 import com.algonix.server.entity.User;
 import com.algonix.server.exception.DuplicateResourceException;
 import com.algonix.server.repository.UserRepository;
+import com.algonix.server.security.CustomUserPrincipal;
 import com.algonix.server.service.AuthService;
 import com.algonix.server.util.JWTService;
 import jakarta.servlet.http.Cookie;
@@ -19,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -97,7 +97,7 @@ public class AuthServiceImpl implements AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        CustomUserPrincipal  userDetails =  userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));

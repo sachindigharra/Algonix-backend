@@ -1,4 +1,4 @@
-package com.algonix.server.dto;
+package com.algonix.server.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

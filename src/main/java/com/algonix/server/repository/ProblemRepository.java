@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface ProblemRepository extends JpaRepository<Problem, UUID> {
 
 
-    List<Problem> findByUserId(UUID userId);
+    List<Problem> findByCreatedById(UUID userId);
 
     List<Problem> findAll();
 
