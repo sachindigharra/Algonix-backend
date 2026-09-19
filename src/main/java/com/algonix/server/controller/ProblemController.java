@@ -2,9 +2,10 @@ package com.algonix.server.controller;
 
 import com.algonix.server.dto.request.BulkUpdateProblemRequest;
 import com.algonix.server.dto.request.CreateProblemRequest;
-import com.algonix.server.dto.request.UserProblemStatusResponse;
 import com.algonix.server.dto.request.UpdateUserProblemRequest;
+import com.algonix.server.dto.request.UserProblemStatusResponse;
 import com.algonix.server.dto.response.BulkImportResponse;
+import com.algonix.server.dto.response.CompanyProblemResponse;
 import com.algonix.server.dto.response.ProblemResponse;
 import com.algonix.server.dto.response.UserProblemResponse;
 import com.algonix.server.entity.ProblemStatus;
@@ -103,14 +104,23 @@ public class ProblemController {
                 null);
     }
 
-    @PostMapping("/bulk-import")
+    @PostMapping("/bulk-import/{company}/{bucket}")
     public ResponseEntity<BulkImportResponse> bulkImport(
-            @Valid @RequestBody List<CreateProblemRequest> requests,Authentication authentication) {
+            @PathVariable(required = true) String company,
+            @PathVariable String bucket,
+            @Valid @RequestBody List<CreateProblemRequest> requests,
+            Authentication authentication) {
+
         CustomUserPrincipal principal =
                 (CustomUserPrincipal) authentication.getPrincipal();
-        UUID userId = principal.getUserId();
+
         return ResponseEntity.ok(
-                problemService.bulkImportProblems(userId, requests)
+                problemService.bulkImportProblems(
+                        principal.getUserId(),
+                        company,
+                        bucket,
+                        requests
+                )
         );
     }
 
@@ -167,6 +177,15 @@ public class ProblemController {
 
         return ResponseEntity.ok(
                 problemService.getUserStatuses(principal.getUserId())
+        );
+    }
+
+    @GetMapping("/company/{company}")
+    public ResponseEntity<List<CompanyProblemResponse>> getProblemsByCompany(
+            @PathVariable String company) {
+
+        return ResponseEntity.ok(
+                problemService.getProblemsByCompany(company)
         );
     }
 

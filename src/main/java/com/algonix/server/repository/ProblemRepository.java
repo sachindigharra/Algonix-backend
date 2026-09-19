@@ -20,4 +20,6 @@ public interface ProblemRepository extends JpaRepository<Problem, UUID> {
 
     @Query("SELECT p FROM Problem p WHERE LOWER(p.title) = LOWER(:title)")
     Optional<Problem> findByTitleIgnoreCase(@Param("title") String title);
+
+    List<Problem> findByCompanies_NameIgnoreCase(String companyName);
 }

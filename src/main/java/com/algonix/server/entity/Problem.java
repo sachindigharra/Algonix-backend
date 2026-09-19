@@ -58,13 +58,13 @@ public class Problem {
     @Column(name = "tag")
     private List<String> tags = new ArrayList<>();
 
-    @ElementCollection
-    @CollectionTable(
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
             name = "problem_companies",
-            joinColumns = @JoinColumn(name = "problem_id")
+            joinColumns = @JoinColumn(name = "problem_id"),
+            inverseJoinColumns = @JoinColumn(name = "company_id")
     )
-    @Column(name = "company")
-    private List<String> companies = new ArrayList<>();
+    private List<Company> companies = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(
