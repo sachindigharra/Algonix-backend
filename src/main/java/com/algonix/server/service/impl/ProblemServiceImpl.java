@@ -4,11 +4,14 @@ import com.algonix.server.dto.request.CreateProblemRequest;
 import com.algonix.server.dto.request.UpdateUserProblemRequest;
 import com.algonix.server.dto.request.UserProblemStatusResponse;
 import com.algonix.server.dto.response.BulkImportResponse;
+import com.algonix.server.dto.response.CompanyProblemResponse;
 import com.algonix.server.dto.response.ProblemResponse;
 import com.algonix.server.dto.response.UserProblemResponse;
 import com.algonix.server.entity.*;
 import com.algonix.server.exception.ResourceNotFoundException;
 import com.algonix.server.mapper.ProblemMapper;
+import com.algonix.server.repository.CompanyRepository;
+import com.algonix.server.repository.ProblemCompanyMetadataRepository;
 import com.algonix.server.repository.ProblemRepository;
 import com.algonix.server.repository.UserProblemRepository;
 import com.algonix.server.repository.UserRepository;
@@ -31,8 +34,10 @@ public class ProblemServiceImpl implements ProblemService {
 
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
     private final ProblemMapper problemMapper;
     private final UserProblemRepository userProblemRepository;
+    private final ProblemCompanyMetadataRepository metadataRepository;
 
     @Override
     public ProblemResponse createProblem(UUID userId, CreateProblemRequest request) {
@@ -177,6 +182,8 @@ public class ProblemServiceImpl implements ProblemService {
     @Transactional
     public BulkImportResponse bulkImportProblems(
             UUID adminId,
+            String company,
+            String Bucket,
             List<CreateProblemRequest> requests) {
 
         log.info(
@@ -204,10 +211,10 @@ public class ProblemServiceImpl implements ProblemService {
                         problemRepository.findByTitleIgnoreCase(
                                 request.getTitle().trim()
                         );
-
+                Problem problem;
                 if (existingProblem.isPresent()) {
 
-                    Problem problem = existingProblem.get();
+                    problem = existingProblem.get();
 
                     mergeCompanies(problem, request.getCompanies());
 
@@ -217,7 +224,7 @@ public class ProblemServiceImpl implements ProblemService {
 
                 } else {
 
-                    Problem problem = problemMapper.toEntity(request);
+                     problem = problemMapper.toEntity(request);
 
                     problem.setCreatedBy(admin);
 
@@ -225,7 +232,7 @@ public class ProblemServiceImpl implements ProblemService {
 
                     created++;
                 }
-
+                savePreparationMetadata(problem, company, Bucket != null ? PreparationBucket.valueOf(Bucket.toUpperCase()) : null);
             } catch (Exception e) {
 
                 log.error(
@@ -262,17 +269,67 @@ public class ProblemServiceImpl implements ProblemService {
             return;
         }
 
-        Set<String> companies = new LinkedHashSet<>();
+        Set<String> companyNames = new LinkedHashSet<>();
 
         if (problem.getCompanies() != null) {
-            companies.addAll(problem.getCompanies());
+            problem.getCompanies().stream()
+                    .map(Company::getName)
+                    .forEach(companyNames::add);
         }
 
-        companies.addAll(importedCompanies);
+        importedCompanies.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .forEach(companyNames::add);
 
-        problem.setCompanies(new ArrayList<>(companies));
+        List<Company> mergedCompanies = companyNames.stream()
+                .map(name -> companyRepository.findByNameIgnoreCase(name)
+                        .orElseGet(() -> {
+                            Company company = new Company();
+                            company.setName(name);
+                            return companyRepository.save(company);
+                        }))
+                .toList();
+
+        problem.setCompanies(new ArrayList<>(mergedCompanies));
     }
+    private void savePreparationMetadata(
+            Problem problem,
+            String company,
+            PreparationBucket bucket) {
 
+        if (bucket == null) {
+            return;
+        }
+
+        Company companyEntity = companyRepository.findByNameIgnoreCase(company)
+                .orElseGet(() -> {
+                    Company newCompany = new Company();
+                    newCompany.setName(company);
+                    return companyRepository.save(newCompany);
+                });
+
+        Optional<ProblemCompanyMetadata> existing =
+                metadataRepository.findByProblem_IdAndCompany_NameIgnoreCase(
+                        problem.getId(),
+                        companyEntity.getName()
+                );
+
+        if (existing.isPresent()) {
+            existing.get().setPreparationBucket(bucket);
+            return;
+        }
+
+        ProblemCompanyMetadata metadata =
+                new ProblemCompanyMetadata();
+
+        metadata.setProblem(problem);
+        metadata.setCompany(companyEntity);
+        metadata.setPreparationBucket(bucket);
+
+        metadataRepository.save(metadata);
+    }
     public UserProblemResponse updateUserProblem(
             UUID problemId,
             UUID userId,
@@ -414,6 +471,45 @@ public class ProblemServiceImpl implements ProblemService {
                                 userProblem.getStatus().toString()
                         )
                 )
+                .toList();
+    }
+
+    @Transactional
+    public List<CompanyProblemResponse> getProblemsByCompany(String company) {
+
+        company = company.trim().toUpperCase();
+
+        List<Problem> problems =
+                problemRepository.findByCompanies_NameIgnoreCase(company);
+
+        List<ProblemCompanyMetadata> metadata =
+                metadataRepository.findByCompany_NameIgnoreCaseAndProblemIn(
+                        company,
+                        problems
+                );
+
+        Map<UUID, PreparationBucket> bucketMap =
+                metadata.stream()
+                        .collect(Collectors.toMap(
+                                m -> m.getProblem().getId(),
+                                ProblemCompanyMetadata::getPreparationBucket
+                        ));
+
+        String finalCompany = company;
+        return problems.stream()
+                .map(problem -> {
+                    PreparationBucket bucket =
+                            bucketMap.getOrDefault(
+                                    problem.getId(),
+                                    PreparationBucket.MORE_THAN_SIX_MONTHS
+                            );
+
+                    return problemMapper.toCompanyProblemResponse(
+                            problem,
+                            finalCompany,
+                            bucket
+                    );
+                })
                 .toList();
     }
 }

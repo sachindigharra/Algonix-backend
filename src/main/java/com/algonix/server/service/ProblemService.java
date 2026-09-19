@@ -4,6 +4,7 @@ import com.algonix.server.dto.request.CreateProblemRequest;
 import com.algonix.server.dto.request.UpdateUserProblemRequest;
 import com.algonix.server.dto.request.UserProblemStatusResponse;
 import com.algonix.server.dto.response.BulkImportResponse;
+import com.algonix.server.dto.response.CompanyProblemResponse;
 import com.algonix.server.dto.response.ProblemResponse;
 import com.algonix.server.dto.response.UserProblemResponse;
 import com.algonix.server.entity.ProblemStatus;
@@ -30,7 +31,7 @@ public interface ProblemService {
     // Bulk and sync related operations
     List<ProblemResponse> upsertProblems(UUID userId, List<CreateProblemRequest> requests);
 
-    BulkImportResponse bulkImportProblems(UUID userId, List<CreateProblemRequest> requests);
+    BulkImportResponse bulkImportProblems(UUID userId,String company,String bucket, List<CreateProblemRequest> requests);
 
     UserProblemResponse updateUserProblem(UUID problemId, UUID userId, UpdateUserProblemRequest request);
 
@@ -41,4 +42,6 @@ public interface ProblemService {
      List<UserProblemResponse> getAllProblemsForUser(UUID userId);
 
     List<UserProblemStatusResponse> getUserStatuses(UUID userId);
+
+    List<CompanyProblemResponse> getProblemsByCompany(String company);
 }
