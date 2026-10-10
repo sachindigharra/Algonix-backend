@@ -10,11 +10,10 @@ import com.algonix.server.dto.response.UserProblemResponse;
 import com.algonix.server.entity.*;
 import com.algonix.server.exception.ResourceNotFoundException;
 import com.algonix.server.mapper.ProblemMapper;
-import com.algonix.server.repository.CompanyRepository;
-import com.algonix.server.repository.ProblemCompanyMetadataRepository;
-import com.algonix.server.repository.ProblemRepository;
-import com.algonix.server.repository.UserProblemRepository;
-import com.algonix.server.repository.UserRepository;
+import com.algonix.server.repository.*;
+import com.algonix.server.repository.projection.CompanyProjection;
+import com.algonix.server.repository.projection.PatternProjection;
+import com.algonix.server.repository.projection.TagProjection;
 import com.algonix.server.service.ProblemService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -75,10 +74,32 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     public List<ProblemResponse> getAllProblems(UUID userId) {
         List<Problem> problems = problemRepository.findByCreatedById(userId);
+        if (problems.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> ids = problems.stream().map(Problem::getId).toList();
+
+        Map<UUID, List<String>> tagsByProblem = problemRepository.findTagsByProblemIds(ids).stream()
+                .collect(Collectors.groupingBy(TagProjection::getProblemId,
+                        Collectors.mapping(TagProjection::getTag, Collectors.toList())));
+
+        Map<UUID, List<String>> patternsByProblem = problemRepository.findPatternsByProblemIds(ids).stream()
+                .collect(Collectors.groupingBy(PatternProjection::getProblemId,
+                        Collectors.mapping(PatternProjection::getPattern, Collectors.toList())));
+
+        Map<UUID, List<String>> companiesByProblem = problemRepository.findCompaniesByProblemIds(ids).stream()
+                .collect(Collectors.groupingBy(CompanyProjection::getProblemId,
+                        Collectors.mapping(CompanyProjection::getCompanyName, Collectors.toList())));
         log.info("Fetched {} problems for user {}", problems.size(), userId);
         return problems.stream()
-                .map(problemMapper::toResponseDto)
+                .map(p -> problemMapper.toResponseDto(
+                        p,
+                        tagsByProblem.getOrDefault(p.getId(), List.of()),
+                        patternsByProblem.getOrDefault(p.getId(), List.of()),
+                        companiesByProblem.getOrDefault(p.getId(), List.of())))
                 .toList();
+
     }
 
     @Override
