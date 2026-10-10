@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -50,7 +51,8 @@ public class Problem {
     @Column(nullable = false)
     private Difficulty difficulty;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @CollectionTable(
             name = "problem_tags",
             joinColumns = @JoinColumn(name = "problem_id")
@@ -59,6 +61,7 @@ public class Problem {
     private List<String> tags = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @JoinTable(
             name = "problem_companies",
             joinColumns = @JoinColumn(name = "problem_id"),
@@ -66,7 +69,8 @@ public class Problem {
     )
     private List<Company> companies = new ArrayList<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @CollectionTable(
             name = "problem_patterns",
             joinColumns = @JoinColumn(name = "problem_id")

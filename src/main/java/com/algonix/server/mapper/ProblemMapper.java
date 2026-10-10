@@ -38,6 +38,24 @@ public class ProblemMapper {
                 .patterns(problem.getPatterns() != null ? problem.getPatterns() : List.of())
                 .build();
     }
+    // DTO Projection Mapping (for bulk queries)
+    public ProblemResponse toResponseDto(Problem problem, List<String> tags,
+                                         List<String> patterns, List<String> companies) {
+        if (problem == null) {
+            return null;
+        }
+
+        return ProblemResponse.builder()
+                .id(problem.getId())
+                .title(problem.getTitle())
+                .url(problem.getUrl() != null ? problem.getUrl() : "")
+                .platform(problem.getPlatform() != null ? problem.getPlatform().toString().toLowerCase() : "leetcode")
+                .difficulty(problem.getDifficulty() != null ? problem.getDifficulty().toString().toLowerCase() : "medium")
+                .tags(tags)
+                .companies(companies)
+                .patterns(patterns)
+                .build();
+    }
 
     public Problem toEntity(CreateProblemRequest request){
         if (request == null) {
