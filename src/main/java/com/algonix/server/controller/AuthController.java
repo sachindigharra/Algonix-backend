@@ -66,7 +66,7 @@ public class AuthController {
                                     HttpServletResponse response) {
         logger.info("User logging out system");
         authService.logout(request, response);
-        
+
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .data("Logged out successfully")
                 .error(null)

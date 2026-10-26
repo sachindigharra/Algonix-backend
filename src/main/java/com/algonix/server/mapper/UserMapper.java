@@ -1,5 +1,6 @@
 package com.algonix.server.mapper;
 
+import com.algonix.server.dto.AuthResponse;
 import com.algonix.server.dto.response.UserProfileResponse;
 import com.algonix.server.entity.User;
 import com.algonix.server.entity.UserProfile;
@@ -17,6 +18,13 @@ public class UserMapper {
                 .fullName(user.getFullName() != null ? user.getFullName() : null)
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
+                .build();
+    }
+    public AuthResponse mapToAuthResponse(User user){
+        return AuthResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName()!=null? user.getFullName() : "Please update your full name")
                 .build();
     }
 }

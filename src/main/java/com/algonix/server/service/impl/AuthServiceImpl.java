@@ -1,11 +1,12 @@
 package com.algonix.server.service.impl;
 
-import com.algonix.server.dto.response.AuthResponse;
 import com.algonix.server.dto.request.LoginRequest;
 import com.algonix.server.dto.request.RegisterRequest;
+import com.algonix.server.dto.response.AuthResponse;
 import com.algonix.server.entity.Role;
 import com.algonix.server.entity.User;
 import com.algonix.server.exception.DuplicateResourceException;
+import com.algonix.server.mapper.UserMapper;
 import com.algonix.server.repository.UserRepository;
 import com.algonix.server.security.CustomUserPrincipal;
 import com.algonix.server.service.AuthService;
@@ -39,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
 
+    private final UserMapper mapper;
 
     @Override
     public AuthResponse register(RegisterRequest request, HttpServletResponse response) {
@@ -97,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        CustomUserPrincipal  userDetails =  userDetailsService.loadUserByUsername(request.getEmail());
+        CustomUserPrincipal userDetails =  userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));

@@ -35,13 +35,16 @@ public interface ProblemService {
 
     UserProblemResponse updateUserProblem(UUID problemId, UUID userId, UpdateUserProblemRequest request);
 
-     void updateStatus(UUID userId, UUID problemId, ProblemStatus status);
+    void updateStatus(UUID userId, UUID problemId, ProblemStatus status);
 
-     List<ProblemResponse> getAllProblemsForUser();
+    List<ProblemResponse> getAllProblemsForUser();
 
-     List<UserProblemResponse> getAllProblemsForUser(UUID userId);
+    List<UserProblemResponse> getAllProblemsForUser(UUID userId);
 
     List<UserProblemStatusResponse> getUserStatuses(UUID userId);
 
     List<CompanyProblemResponse> getProblemsByCompany(String company);
+
+    interface LeetCodeService {
+    }
 }
